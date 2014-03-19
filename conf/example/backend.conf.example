@@ -1,0 +1,16 @@
+# Sample config file for backend-specific stuff
+
+# Backend settings
+[sip]
+port     7031
+operator jluser
+password ********
+location Circulation
+
+[voyager]
+database = VGER
+item_barcode_format ILLITEM%s
+
+[global]
+locations_file locations.conf
+

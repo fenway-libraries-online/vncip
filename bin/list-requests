@@ -1,0 +1,68 @@
+#!/m1/shared/bin/perl
+
+use strict;
+use warnings;
+
+use XML::Simple;
+
+use Getopt::Std;
+
+my $var = '/var/local/vncip';
+
+my %opt;
+getopts('t', \%opt);
+
+if ($opt{t}) {
+    open STDIN, '<', "$var/log/traindb.log" or die;
+}
+else {
+    open STDIN, '<', "$var/log/flodb.log" or die;
+}
+
+$/ = '';
+
+my %num;
+my %type;
+my @match;
+
+foreach (@ARGV) {
+    if (m{^/(.+)/$}) {
+        push @match, qr/(?m)$1/;
+    }
+    elsif (/^\d+$/) {
+        $num{$_} = 1;
+    }
+    else {
+        $type{$_} = 1;
+    }
+}
+
+my $n = 0;
+while (<STDIN>) {
+    $n++;
+    next if %num && !$num{$n};
+    my ($date, $ipaddr);
+    my $xml = '';
+    my $response;
+    ($_, $response) = split /\n::: WORKING\n/;
+    foreach (split /\n/) {
+        if (/^(?:\(\(|\)\)) (.+) (\S+)$/) {
+            ($date, $ipaddr) = ($1, $2);
+        }
+        elsif (s/^\|   //) {
+            $xml .= $_;
+            $xml .= "\n";
+        }
+    }
+    if (length $xml) {
+        next if @match && !grep { $xml =~ $_ } @match;
+        $xml = XMLin($xml, 'KeepRoot' => 1);
+        my $msg = $xml->{'NCIPMessage'} || die "not an NCIP message";
+        my $version = delete $msg->{'version'};
+        my ($msgtype, $body, @etc) = %$msg;
+        die if @etc;
+        next if %type && !$type{$msgtype};
+        my $flag = ($response =~ /<Problem>/ ? 'E' : '');
+        printf "%4d %-1.1s %-24.24s %-19.19s %s\n", $n, $flag, $msgtype, $ipaddr, $date;
+    }
+}

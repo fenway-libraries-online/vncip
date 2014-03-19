@@ -1,0 +1,71 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use lib qw(/usr/local/vncip/lib);
+use lib 'lib';
+
+use Biblio::NCIP1::Common;
+use Biblio::NCIP1::Responder;
+use Biblio::NCIP1::Backend::Vger8;
+use Getopt::Std;
+
+chdir '/usr/local/vncip';
+
+my %cmd2method = qw(
+    accept   AcceptItem
+    cancel   CancelRequestItem
+    checkin  CheckInItem
+    checkout CheckOutItem
+    lookup   LookupUser
+    renew    RenewItem
+    request  RequestItem
+);
+
+my %opt;
+getopts('t', \%opt);
+my $target = $opt{'t'} ? 'traindb' : $ENV{'NCIP_TARGET'} || 'flodb';
+$ENV{'NCIP_TARGET'} = $target;
+
+exit usage() if @ARGV != 1;
+my $cmd = shift;
+my $msg = parse(\*STDIN);
+my $method = $cmd2method{$cmd} || exit usage();
+
+my $backend = Biblio::NCIP1::Backend::Vger8->new(
+    'config_file' => "conf/$target/backend.conf",
+);
+my $responder = Biblio::NCIP1::Responder->new(
+    # 'config_file' => "conf/$target/responder.conf",
+    'backend' => $backend,
+);
+
+$backend->$method($msg);
+
+sub parse {
+    my ($fh) = @_;
+    my %msg;
+    while (<$fh>) {
+        chomp;
+        next if /^\s*(#.*)?$/;  # Skip blank lines and comments
+        die "Bad line: $_" if !m/(\S+) (.*)/;
+        $msg{$1} = $2;
+    }
+    return dotty2hash(\%msg);
+}
+
+sub dotty2hash {
+    my ($dot) = @_;
+    my %hash;
+    foreach my $key (sort keys %$dot) {
+        my $val = $dot->{$key};
+        my $h = \%hash;
+        while ($key =~ s/^(\w+)\.//) {
+            $h = $h->{$1} ||= {};
+        }
+        $h->{$key} = $val;
+    }
+    return \%hash;
+}
+

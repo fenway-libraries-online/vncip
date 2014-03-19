@@ -1,0 +1,51 @@
+#!/bin/zsh
+
+main() {
+    local name
+    set nullglob
+    set -- queue/new/*(N)
+    (( $#argv > 0 )) || return 0
+    for name in $@:t; do
+        pickup $name &&
+        send   $name &&
+        finish $name ||
+        fail   $name
+    done >> queue.log 2>> queue.err
+}
+
+pickup() {
+    mv queue/new/$1 queue/sending/ && print P $1
+}
+
+send() {
+    tail -n +2 < queue/sending/$1 |
+    tee foo | sendmail -oi -t && print S $1
+}
+
+finish() {
+    mv queue/sending/$1 queue/sent/ && print U $1
+}
+
+fail() {
+    mv */$1 queue/failed/ && print F $1
+}
+
+#######################################################
+##                                                   ##
+##        ...                                        ##
+##         |                                         ##
+##         V                                         ##
+##    +---------+     +---------+     +---------+    ##
+##    | new     |--+->| sending |--+->| sent    |    ##
+##    +---------+  |  +---------+  |  +---------+    ##
+##                 |               |                 ##
+##                 `-------+-------'                 ##
+##                         |                         ##
+##                         V                         ##
+##                    +---------+                    ##
+##                    | failed  |                    ##
+##                    +---------+                    ##
+##                                                   ##
+#######################################################
+
+main "$@"

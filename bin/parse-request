@@ -1,0 +1,17 @@
+#!/m1/shared/bin/perl
+
+use strict;
+use warnings;
+
+use lib qw(/usr/local/vncip/lib);
+use lib 'lib';
+
+use Biblio::NCIP1::Common;
+use Biblio::NCIP1::Request;
+use YAML qw();
+use Getopt::Std;
+
+undef $/;
+my $xml = <STDIN>;
+my $msg = Biblio::NCIP1::Request->new($xml);
+print YAML::Dump($msg);

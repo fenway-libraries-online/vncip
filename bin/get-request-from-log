@@ -1,0 +1,49 @@
+#!/m1/shared/bin/perl
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Getopt::Std;
+
+my %opt;
+getopts('tr', \%opt);
+
+chdir '/var/local/vncip' or die;
+
+if ($opt{t}) {
+    open STDIN, '<', 'log/traindb.log' or die;
+}
+else {
+    open STDIN, '<', 'log/flodb.log' or die;
+}
+
+my $type = $opt{r} ? 'response' : 'request';
+
+exit usage() if @ARGV > 1;
+@ARGV = (-1) if !@ARGV;
+
+my ($n) = @ARGV;
+
+$/ = '';
+
+while (<STDIN>) {
+    next if $. != $n;
+    my ($date, $ipaddr);
+    my ($req, $res) = split /\n::: WORKING\n/;
+    my $xml = '';
+    $_ = $opt{r} ? $res : $req;
+    foreach (split /\n/) {
+        if (/^(?:\(\(|\)\)) (.+) (\S+)$/) {
+            ($date, $ipaddr) = ($1, $2);
+        }
+        elsif (s/^\|   //) {
+            $xml .= $_;
+            $xml .= "\n";
+        }
+    }
+    next if !length $xml;
+    my ($xmldecl, $etc) = split /\n/, $xml, 2;
+    print $xmldecl, "\n", "<!-- $type $. [$ipaddr] $date -->\n", $etc, "\n";
+    last;
+}

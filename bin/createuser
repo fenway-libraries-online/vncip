@@ -1,0 +1,77 @@
+#!/bin/zsh
+
+sifmake - "$@" <<'EOS' | sifasm | vaddpatron
+00000 patron id                    | 0000000000
+00010 barcode 1 id                 |           
+00020 barcode 1 barcode            | ${barcode:25}
+00045 barcode 1 patron group       | FLOVC     
+00055 barcode 1 status             | 1
+00056 barcode 1 mod date           |           
+00066 barcode 2 id                 |           
+00076 barcode 2 barcode            |                          
+00101 barcode 2 patron group       |           
+00111 barcode 2 status             |  
+00112 barcode 2 mod date           |           
+00122 barcode 3 id                 |           
+00132 barcode 3 barcode            |                          
+00157 barcode 3 patron group       |           
+00167 barcode 3 status             |  
+00168 barcode 3 mod date           |           
+00178 registration date            | ${today:10}
+00188 expiration date              | 2038.01.01
+00198 purge date                   | 2038.01.01
+00208 voyager date                 |           
+00218 voyager updated              |           
+00228 circ happening               | FLO-VC    
+00238 institution id               | ${institution_id:30}
+00268 ssn                          |            
+00279 statistical category 1 code  |    
+00282 statistical category 2 code  |    
+00285 statistical category 3 code  |    
+00288 statistical category 4 code  |    
+00291 statistical category 5 code  |    
+00294 statistical category 6 code  |    
+00297 statistical category 7 code  |    
+00300 statistical category 8 code  |    
+00303 statistical category 9 code  |    
+00306 statistical category 10 code |    
+00309 name type                    | 1
+00310 surname                      | ${last:30}
+00340 first name                   | ${first:20}
+00360 middle name                  |                     
+00380 title                        |           
+00390 historical charges           | 0000000000
+00400 claims returned count        | 00000
+00405 self-shelved count           | 00000
+00410 lost items count             | 00000
+00415 late media returns           | 00000
+00420 historical bookings          | 00000
+00425 canceled bookings            | 00000
+00430 unclaimed bookings           | 00000
+00435 historical callslips         | 00000
+00440 historical distributions     | 00000
+00445 historical short loans       | 00000
+00450 unclaimed short loans        | 00000
+00455 address count                | 1
+00456 address 1 id                 | 0000000000
+00466 address 1 type               | 1
+00467 address 1 status             | N
+00468 address 1 begin date         | ${today:10}
+00478 address 1 end date           | 2038.01.01
+00488 address 1 line 1             | ${address_line1:50}
+00538 address 1 line 2             | ${address_line2:40}
+00578 address 1 line 3             |                                         
+00618 address 1 line 4             |                                         
+00658 address 1 line 5             |                                         
+00698 address 1 city               | ${address_city:40}
+00738 address 1 state              | ${address_state:07}
+00745 address 1 zip code           | ${address_zip:10}
+00755 address 1 country            |                     
+00775 address 1 phone (primary)    | ${phone:25}
+00800 address 1 phone (mobile)     |                          
+00825 address 1 phone (fax)        |                          
+00850 address 1 phone (other)      |                          
+00875 address 1 added/updated      |           
+00885 record terminator            | {00}{0a}
+
+EOS

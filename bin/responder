@@ -1,0 +1,45 @@
+#!/m1/shared/bin/perl
+
+use strict;
+use warnings;
+
+use lib qw(/usr/local/vncip/lib);
+use lib 'lib';
+
+use Biblio::NCIP1::Common;
+use Biblio::NCIP1::Responder;
+use Biblio::NCIP1::Backend::Vger8;
+
+use Getopt::Std;
+
+$0 = 'ncipd';
+
+my %opt;
+getopts('tdT', \%opt);
+my $target = $opt{'t'} ? 'traindb' : $ENV{'NCIP_TARGET'} || 'flodb';
+$ENV{'NCIP_TARGET'} = $target;
+
+if ($opt{T}) {
+    eval 'use Biblio::NCIP1::Trace';
+    Biblio::NCIP1::Trace::trace(1);
+}
+my $backend = Biblio::NCIP1::Backend::Vger8->new(
+    'config_file' => "conf/$target/backend.conf",
+);
+my $responder = Biblio::NCIP1::Responder->new(
+    # 'config_file' => "conf/$target/responder.conf",
+    'backend' => $backend,
+    'debug' => $opt{'d'} ? {'request' => 1} : {},
+);
+$_->startup for $backend, $responder;
+my ($xml, $err);
+{
+    local $/;
+    $xml = <STDIN>;
+}
+if (defined $xml) {
+    ($xml, $err) = $responder->handle_ncip_request($xml);
+    die "Fatal error: $err" if $err;
+    print $xml;
+}
+$_->teardown for $responder, $backend;

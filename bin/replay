@@ -1,0 +1,24 @@
+#!/bin/zsh
+
+typeset root=/usr/local/vncip
+
+typeset db=flodb opt
+typeset -a respargs perlargs
+
+while getopts :td opt; do
+    case $opt in
+        (t) db=traindb
+            respargs+=( -t ) ;;
+        (d) perlargs+=( -d ) ;;
+    esac
+done
+shift $(( OPTIND - 1 ))
+
+if (( $#argv == 1 )); then
+    exec < $1
+    shift
+fi
+
+cd $root
+
+/m1/shared/bin/perl $perlargs bin/responder $respargs $@

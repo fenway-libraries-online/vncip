@@ -1,0 +1,98 @@
+OVERVIEW
+========
+
+The NCIP responder for Voyager is broken down into small(ish) parts; each part
+does (more or less) one small thing.
+
+bin/server is a Perl script that creates a server object and tells it to run.
+
+bin/ncipd is an init script that starts and stops bin/server.
+
+bin/responder is a Perl script that you can use for debugging a single message
+stored in a file (as opposed to messages that come in over a network
+connection).  Use it this way:
+
+    /m1/shared/bin/perl -d bin/responder -t < t/traindb/lending/LookupUser/001.xml
+
+The server object (Biblio::NCIP1::Server) implements a daemon -- a long-running
+faceless process -- that listens for incoming network connections.
+
+When a new connection is established, the server object tells the responder
+object (Biblio::NCIP1::Responder) to handle it.
+
+The responder object coordinates all of this.  It creates a request object of
+the appropriate class (e.g., Biblio::NCIP1::Request::LookupUser) and passes it
+to the backend object, which does all the heavy lifting.
+
+When it's created, the request object parses the incoming message (an XML
+document) and extracts from it all data that is relevant to the particular
+message type being handled.  This data is what the responder object gives to
+the backend object (Biblio::NCIP1::Backend::*).
+
+The backend does its thing and returns any data that might need to go into the
+response.
+
+The responder object gives this data to the request object, which builds the
+appropriate XML response from it.
+
+The server object then sends this XML response back over the network connection
+to the client (SHAREit).
+
+Biblio::NCIP1::Server
+
+    The server deals with network stuff.  It doesn't know anything about NCIP.
+
+Biblio::NCIP1::Responder
+
+    The responder coordinates everything.  It doesn't know anything about NCIP
+    or how to do the things that SHAREit asks.
+
+Biblio::NCIP1::Backend::Vger8
+
+    This module does all the heavy lifting.  It doesn't know anything about
+    NCIP, it just does what it's asked to do.
+
+Biblio::NCIP1::Request
+Biblio::NCIP1::Request::*
+
+    This family of modules (Biblio::NCIP1::Request and its subclasses) extract
+    all relevant data from the parsed NCIP message and build the XML response
+    that will be sent back.  They know nothing about how the messages are
+    actually handled by the backend.
+
+
+EXAMPLE
+=======
+
+For example, consider the message AcceptItem.  The request is an XML document
+that SHAREit sends.  The following objects already exist at this point (and
+exist all the time that the server is running):
+
+    $server     The Biblio::NCIP1::Server object that deals with network stuff
+
+    $responder  The Biblio::NCIP1::Responder object that coordinates everything
+
+    $backend    The ILS-specific Biblio::NCIP1::Backend::* object that does all
+                the heavy lifting
+
+$server reads the request and asks $responder to handle it (by calling
+$responder->handle_ncip_request).
+
+$responder creates $request (an instance of a Biblio::NCIP1::Request subclass).
+
+$request parses the XML and extracts data from it that is relevant to the
+particular message type being handled.
+
+$responder passes the message off to $backend (by calling, e.g.,
+$backend->AcceptItem or $backend->LookupUser).
+
+$backend does whatever it needs to do and returns data that will go into the
+response message.
+
+$request builds an XML response from this data and returns it to $responder.
+
+$responder returns the XML to $server.
+
+$server sends the XML to the client (i.e., SHAREit).
+
+

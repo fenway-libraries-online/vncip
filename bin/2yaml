@@ -1,0 +1,37 @@
+#!/m1/shared/bin/perl
+
+use strict;
+use warnings;
+
+use lib qw(/usr/local/vncip/lib);
+use lib 'lib';
+
+use Biblio::NCIP1::Common;
+use Biblio::NCIP1::Responder;
+use Biblio::NCIP1::Request;
+use Biblio::NCIP1::Backend::Vger8;
+use YAML qw();
+
+use Getopt::Std;
+
+my %opt;
+getopts('t', \%opt);
+my $target = $opt{'t'} ? 'traindb' : $ENV{'NCIP_TARGET'} || 'flodb';
+$ENV{'NCIP_TARGET'} = $target;
+
+chdir '/usr/local/vncip';
+
+my $backend = Biblio::NCIP1::Backend::Vger8->new(
+    'config_file' => "conf/$target/backend.conf",
+);
+my $responder = Biblio::NCIP1::Responder->new(
+    # 'config_file' => "conf/$target/responder.conf",
+    'backend' => $backend,
+);
+my ($xml, $err);
+{
+    local $/;
+    $xml = <STDIN>;
+}
+my $req = $responder->parse($xml);
+print YAML::Dump($req);

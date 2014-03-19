@@ -1,0 +1,42 @@
+#!/m1/shared/bin/perl
+
+use strict;
+use warnings;
+
+use XML::Simple;
+
+use Getopt::Std;
+
+my %opt;
+getopts('t', \%opt);
+
+if ($opt{t}) {
+    open STDIN, '<', 'log/traindb.log' or die;
+}
+else {
+    open STDIN, '<', 'log/flodb.log' or die;
+}
+
+exit usage() if @ARGV;
+
+$/ = "\n+-- REQUEST\n";
+
+my $n = 0;
+while (<STDIN>) {
+    my $xml = '';
+    foreach (split /\n/) {
+        last if !s/^\|   //;
+        $xml .= $_;
+        $xml .= "\n";
+    }
+    if (length $xml) {
+        $n++;
+        my $doc = XMLin($xml, 'KeepRoot' => 1);
+        my $msg = $doc->{'NCIPMessage'} || die "not an NCIP message";
+        my $version = delete $msg->{'version'};
+        my ($msgtype, $body, @etc) = %$msg;
+        die if @etc;
+        my ($xmldecl, $etc) = split /\n/, $xml, 2;
+        print $xmldecl, "\n", "<!-- message $n -->\n", $etc, "\n";
+    }
+}

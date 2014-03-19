@@ -1,0 +1,29 @@
+#!perl
+
+use strict;
+use warnings;
+
+my $root;
+
+BEGIN {
+    $root = $ENV{'NCIP1_ROOT'} || '/usr/local/ncip1';
+    use lib "$root/lib";
+}
+
+use Biblio::NCIP1;
+
+my $ncip = Biblio::NCIP1->new(
+    'root' => $root,
+);
+
+my ($cmd, @args) = @ARGV;
+$cmd = 'run' if !defined $cmd;
+
+my %cmd2meth = qw(
+    start   start
+    stop    stop
+);
+my $meth = $cmd2meth{$cmd} || exit usage();
+
+$ncip->$meth(@args);
+

@@ -1,0 +1,22 @@
+#!/bin/zsh
+
+TRAPTERM() {
+    : # Ignore it
+}
+
+typeset msgtype
+tail -F -n0 $@ | while read -A argv; do
+    case $2 in
+        (\</*Response\>)
+            sendmail -oi -t <<EOS
+From: voyager@titania.flo.org
+To: paul@flo.org
+Subject: [Titania] NCIP message received: $msgtype
+
+An NCIP message has been received.
+EOS
+            ;;
+        (\<*Response\>)
+            msgtype=${2[2,-10]} ;;
+    esac
+done

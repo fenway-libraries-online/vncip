@@ -1,0 +1,76 @@
+#!/bin/zsh
+
+export QINAME QIPARAMS
+typeset cmd
+typeset -a cmdargs
+
+main() {
+    (( $#argv > 0 )) || die 'usage: qiproc DIR CMD [ARG]...'
+    typeset dir=$1; shift
+    cd $dir || die "cd $dir"
+    cmd=$1; shift
+    cmdargs=( "$@" )
+    argv=( new/*(N) )
+    if (( $#argv > 0 )); then
+        exec 2>> queue.err || die 'open queue.err'
+        exec  >> queue.log || die 'open queue.log'
+        for QINAME in $@:t; do
+            process
+        done
+    fi
+}
+
+process() {
+    set localoptions errexit
+    exec < new/$QINAME    || fail 'open for reading'
+    read -r QIPARAMS      || fail 'read params'
+    log new               || fail 'log'
+    flock -w 10 -e 0      || fail 'lock'
+    mv new/$QINAME proc/  || fail 'move'
+    log proc              || fail 'log'
+    $cmd "${(@)cmdargs}"  || fail 'process'
+    mv proc/$QINAME done/ || fail 'move'
+    log done              || true
+    exec <&-
+}
+
+fail() {
+    set localoptions noerrexit
+    log X
+    mv {new,proc,done}/$QINAME(N) fail/
+    return 2
+}
+
+now() {
+    print -P '%D{%Y%m%dT%H%M%S}'
+}
+
+log() {
+    typeset code=$1; shift
+    print $(now) $code $QINAME $QIPARAMS $@
+}
+
+die() {
+    print FATAL: "$@" >&2
+    exit 2
+}
+
+main "$@"
+
+#######################################################
+##                                                   ##
+##        ...                                        ##
+##         |                                         ##
+##         V                                         ##
+##    +---------+     +---------+     +---------+    ##
+##    |   new   |---->|  proc   |---->|  done   |    ##
+##    +----+----+     +----+----+     +----+----+    ##
+##         |               |               |         ##
+##         +------------+  |  +------------+         ##
+##                      |  |  |                      ##
+##                      V  V  V                      ##
+##                    +---------+                    ##
+##                    |  fail   |                    ##
+##                    +---------+                    ##
+##                                                   ##
+#######################################################
