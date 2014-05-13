@@ -1,117 +1,41 @@
-#!/bin/zsh -e
+#!/m1/shared/bin/perl
 
-typeset root=/usr/local/vncip
-typeset -a targets opts
-# Note: opts isn't used at this point
+use strict;
+use warnings;
 
-main() {
-    cd $root
-    (( $#argv > 0 )) || usage
-    typeset cmd=$1; shift
-    case $cmd in
-        (start)
-            start $@ ;;
-        (stop)
-            stop $@ ;;
-        (status)
-            status $@ ;;
-        (restart)
-            stop; start $@ ;;
-        (*)
-            usage ;;
-    esac
+#use lib qw(/usr/local/vncip/lib);
+use lib 'lib';
+
+use Biblio::NCIP1::Common;
+use Biblio::NCIP1::Responder;
+use Biblio::NCIP1::Backend::Vger8;
+use Biblio::NCIP1::Server;
+
+use Getopt::Std;
+
+$0 = 'ncipd';
+
+my %opt;
+getopts('tdT', \%opt);
+my $target = $opt{'t'} ? 'traindb' : $ENV{'NCIP_TARGET'} || 'flodb';
+$ENV{'NCIP_TARGET'} = $target;
+
+if ($opt{T}) {
+    eval 'use Biblio::NCIP1::Trace';
+    Biblio::NCIP1::Trace::trace(1);
 }
-
-start() {
-    typeset target debug=false opt
-    integer pid
-    while getopts :d: opt; do
-        case $opt in
-            (d) debug=true; target=$OPTARG ;;
-        esac
-    done
-    shift $(( OPTIND - 1 ))
-    if $debug; then
-        print '\e[32;1m'"target $target started -- enter 'c' and then trigger a message"'\e[0m' >&2
-        ARGV0=ncipd NCIP_TARGET=$target /m1/shared/bin/perl -d bin/server $opts
-        return
-    fi
-    for target in $(_targets $@); do
-        pid=$(_pidof $target)
-        if (( pid == 0 )); then
-            ARGV0=ncipd NCIP_TARGET=$target bin/server $opts >> log/$target.log 2>&1 &
-            sleep 0.5
-            pid=$(_pidof $target)
-            _note $target started \($pid\)
-        else
-            _note $target already running \($pid\)
-        fi
-    done
-}
-
-stop() {
-    integer pid err=0
-    typeset target
-    for target in $(_targets $@); do
-        pid=$(_pidof $target)
-        if (( pid == 0 )); then
-            _note $target not running
-        elif kill $pid; then
-            _note $target stopped
-        else
-            err=$?
-            _note $target could not be stopped
-        fi
-    done
-    return $err
-}
-
-status() {
-    integer pid err=0
-    typeset target
-    for target in $(_targets $@); do
-        pid=$(_pidof $target)
-        if (( pid == 0 )); then
-            _note $target not running
-            err=2
-        else
-            _note $target running \($pid\)
-        fi
-    done
-    return $err
-}
-
-_targets() {
-    if (( $#argv > 0 )); then
-        print -l -- $@
-    else
-        typeset target
-        set conf/*/server.conf
-        print -l $@:h:t
-    fi
-}
-
-_pidof() {
-    typeset target=$1
-    typeset port
-    for port in $(_ports $target); do
-        netstat -nlp 2> /dev/null | awk '/:'$port' / && match($NF, /[0-9]+/) { print substr($NF,RSTART,RLENGTH) }'
-        #netstat -nlp 2> /dev/null | perl -ne 'if (m{[\d*]:'$port' .+ (\d+)/ncipd$}) { print $1 }'
-    done
-}
-
-_ports() {
-    typeset target
-    for target in $(_targets $@); do
-        [[ -e conf/$target/server.conf ]] || continue
-        awk '/^port / { print $2 }' conf/$target/server.conf
-    done
-}
-
-_note() {
-    typeset target=$1; shift
-    typeset msg="$*"
-    printf '%-7s %s\n' $target $msg >&2
-}
-
-main $@
+my $backend = Biblio::NCIP1::Backend::Vger8->new(
+    'config_file' => "conf/$target/backend.conf",
+);
+my $responder = Biblio::NCIP1::Responder->new(
+    # 'config_file' => "conf/$target/responder.conf",
+    'backend' => $backend,
+    'debug' => $opt{'d'} ? {'request' => 1} : {},
+);
+my $server = Biblio::NCIP1::Server->new(
+    'conf_file' => "conf/$target/server.conf",
+);
+$_->startup for $backend, $responder, $server;
+$server->responder($responder);
+$server->run;
+$_->teardown for $server, $responder, $backend;
