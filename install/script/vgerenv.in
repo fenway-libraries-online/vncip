@@ -1,0 +1,31 @@
+#!/bin/ksh
+
+## vgerenv - run a command with all Voyager-related environment variables set
+
+## Set your defaults here
+voyroot=/m1/voyager
+database=__DATABASE__
+
+## You shouldn't have to change anything below here
+
+main() {
+    while getopts :d: opt; do
+        case $opt in
+            d) database=$OPTARG ;;
+            *) usage ;;
+        esac
+    done
+    shift $(( OPTIND - 1 ))
+    [ -n "$1" ] || usage
+    envfile=$voyroot/$database/ini/voyager.env
+    . $envfile
+    PATH=$PATH:$ORACLE_HOME/bin
+    exec "$@"
+}
+
+usage() {
+    echo 'usage: vgerenv [-d DATABASE] COMMAND [ARG...]' >&2
+    exit 1
+}
+
+main "$@"

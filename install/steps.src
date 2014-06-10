@@ -1,0 +1,60 @@
+{{{ Check stuff
+#>runas root
+#+noskip
+[[ -e /m1/shared/bin/perl ]]
+[[ -n $(id -u voyager 2> /dev/null) ]]
+}}}
+
+{{{ Initialize the build
+#>runas root
+mkdir -p build
+}}}
+
+{{{ Configure some things
+#>runas root
+id -u voyager | config -s voyager.uid
+}}}
+
+{{{ Create directories
+#>runas voyager
+#>makes ~voyager/bin
+#>makes ~voyager/src
+mkdir ~/bin
+mkdir ~/src
+}}}
+
+{{{ Install cpanm
+#>runas voyager
+curl -L http://cpanmin.us | perl - App::cpanminus
+}}}
+
+{{{ Install local::lib
+#>skiptest perl -Mlocal::lib -e1
+#>runas voyager
+~/perl5/bin/cpanm --local-lib=~/perl5 local::lib && eval $(perl -I ~/perl5/lib/perl5/ -Mlocal::lib)
+}}}
+
+{{{ Create vperl
+#>runas voyager
+#>makes ~voyager/bin/vperl
+#>makes ~/bin
+mkdir ~/bin
+cat > ~/bin/vperl <<'EOS'
+#!/bin/sh
+#eval $(perl -I ~/perl5/lib/perl5/ -Mlocal::lib)
+exec /m1/shared/bin/perl -I$HOME/perl5/lib -Mlocal::lib=$HOME/lib/perl5lib
+EOS
+}}}
+
+{{{ Install prerequisite Perl modules
+#>runas voyager
+~/perl5/bin/cpanm $(cat perlmods)
+}}}
+
+{{{ Install vgerenv
+#>runas voyager
+#>makes ~voyager/bin/vgerenv
+sed "s/__DATABASE__/$(config database)" script/vgerenv.in > ~/bin/vgerenv
+}}}
+
+# vim:set foldmethod=marker:

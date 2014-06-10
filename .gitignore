@@ -23,3 +23,7 @@ old
 q
 src
 t1q
+install/step
+install/build
+install/run-steps.zsh
+install/install.conf

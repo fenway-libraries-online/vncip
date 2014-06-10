@@ -1,0 +1,12 @@
+Biblio::NCIP1
+Biblio::NCIP1::Backend::Vger8
+Carp
+Cwd
+File::Basename
+File::Spec
+Getopt::Std
+Module::Build
+Net::Server
+Package::Constants
+XML::Simple
+YAML
