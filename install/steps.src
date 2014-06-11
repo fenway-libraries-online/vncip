@@ -1,17 +1,15 @@
-{{{ Check stuff
+{{{ Install a few basic Perl modules
 #>runas root
-#+noskip
-[[ -e /m1/shared/bin/perl ]]
-[[ -n $(id -u voyager 2> /dev/null) ]]
+yum install perl-Net-Server perl-Module-Build perl-YAML perl-XML-Simple perl-Package-Constants
 }}}
 
 {{{ Initialize the build
-#>runas root
+#>runas voyager
 mkdir -p build
 }}}
 
 {{{ Configure some things
-#>runas root
+#>runas voyager
 id -u voyager | config -s voyager.uid
 }}}
 

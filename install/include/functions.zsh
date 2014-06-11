@@ -13,6 +13,7 @@ human() {
             (:1:) hsout $line ;;
             (:2:) hserr $line ;;
         esac
+    done
 }
 
 config() {

@@ -5,7 +5,7 @@ use warnings;
 
 use File::Glob qw(glob);
 
-$> == 0 or die "This script must be run as root";
+#$> == 0 or die "This script must be run as root";
 open STDOUT, '>', 'run-steps.zsh' or die "Can't open run-steps.zsh: $!";
 -d 'step' or mkdir 'step' or die "Can't mkdir step: $!";
 
@@ -65,6 +65,9 @@ while (<$fhsrc>) {
     }
     elsif (defined $fhscript) {
         print $fhscript $_;
+    }
+    elsif (/^\s*(?:#.*)?$/) {
+        ;
     }
     elsif (/\S/) {
         die "Malformed step: $_\n";
