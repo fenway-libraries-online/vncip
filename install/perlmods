@@ -1,5 +1,7 @@
 Biblio::NCIP1
 Biblio::NCIP1::Backend::Vger8
+Biblio::SIP2
+Biblio::SIP2::Vger8
 Carp
 Cwd
 File::Basename
