@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Architecture of vncip</title>
+</head>
+<body>
+
+<h1>Architecture of vncip</h1>
+
+<p>
+The <b>vncip</b> responder is a system of Perl scripts and modules whose task
+is to receive incoming NCIP version 1 requests, figure out what to do with each
+request, do it (or ask Voyager to do it), build an appropriate response, and
+send the response back to the initiator.
+
+<p>
+Most of what <b>vncip</b> does is delegated to Voyager using SQL queries run
+against the Oracle database that stores Voyager&rsquo;s data or via the
+extended SIP2 interface that Voyager provides.  For example, checking out an
+item to a patron requires gathering information about the patron and the item
+using SQL, then using SIP to ask Voyager to check the item out.
+
+<p>
+The code that makes up <b>vncip</b> is divided among several principal
+components:
+
+<dl>
+<dt><b>ncipd</b></dt>
+<dd><p>
+    The NCIP1 <i>daemon</i> &ndash; this script runs continually and
+    &ldquo;drives&rdquo; all of the other components.
+<dt><b>ncipctl</b></dt>
+<dd><p>
+    A shell script to start and stop <b>ncipd</b>.
+<dt><b>Biblio::NCIP1::Responder</b></dt>
+<dd><p>
+    The main Perl module, which provides the &ldquo;responder&rdquo; proper.
+    The responder coordinates the other Perl modules.
+<dt><b>Biblio::NCIP1::Server</b></dt>
+<dd><p>
+    A Perl module that listens for incoming connections on the desired network
+    port, reads requests that come in, and passes them off to the
+    <b>Biblio::NCIP1::Responder</b> object.
+<dt><b>Biblio::NCIP1:Request</b></dt>
+<dd><p>
+    The Perl module that embodies an NCIP1 request.  It is responsible for
+    parsing the XML that comes in from the NCIP initiator.
+<dt><b>Biblio::NCIP1:Response</b></dt>
+<dd><p>
+    The Perl module that embodies an NCIP1 response.  It is responsible for
+    building the XML that will be sent back to the initiator.
+<dt><b>Biblio::NCIP1:Backend::Vger8</b></dt>
+<dd><p>
+    A Perl module holding all of the Voyager-specific code.
+</dl>
+
+<p>
+The responder is written in Perl with the code broken down into a set of Perl
+modules that work together. The primary “chunks” of code are the daemon (which
+deals with network stuff), the responder proper (which parses the message), the
+message classes (which instantiate the different types of message objects – see
+below), and the Voyager-specific backend code.
+
+<p>
+NCIP and SIP are very different beasts, with different message sets and
+parameters, and it’s important to maintain a strict separation between
+NCIP-savvy and SIP-savvy parts so that no one piece of code has to understand
+both.
+
+<p>
+As a result, the first thing the NCIP responder does is to translate the
+incoming NCIP message (an XML document) into an internal message object; this
+contains a subset of the data found in the NCIP message, but in a very
+different form. (Only a subset is needed, but which subset – and which form it
+takes internally – depends on the particular type of message that was
+received.)
+
+<p>
+This message object is then handed off to the Voyager-specific backend code,
+which typically uses one or more SQL queries to obtain additional information
+from Voyager before passing a SIP message to Voyager requesting that it perform
+the desired action (place a hold, check an item out, etc.). For example, when
+handling the RequestItem message a query is used to turn the ISBN provided into
+a bib ID and item barcode, which is what SIP requires when placing a hold.
+
+<p>
+The Voyager-specific backend uses what it gets back from Voyager via SIP to
+construct a response object, which is returned to the responder proper, which
+converts it into the actual XML that goes back to SHAREit. 
+

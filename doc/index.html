@@ -9,7 +9,17 @@
 
 <p>
 <b>vncip</b> is an NCIP version 1 responder for the Voyager ILS.
-</p>
+
+<h2>Getting it</h2>
+
+<p>
+The source code is available from two sources:
+
+<p>
+<a href="https://github.com/fenway-libraries-online/vncip">The git repository</a> on GitHub.
+
+<p>
+<a href="http://prospero.flo.org/sw/vncip/">In release form</a> from FLO.
 
 <h2>Prerequisites</h2>
 
@@ -22,7 +32,6 @@
 <p>
 Other required software will be installed as part of the installation process.
 This includes The Z Shell (zsh) and a number of Perl modules, for example:
-</p>
 
 <ul>
 <li>Net::Server
@@ -36,7 +45,6 @@ This includes The Z Shell (zsh) and a number of Perl modules, for example:
 NCIP is a protocol for automating circulation and lending tasks &ndash; for
 example, a regional ILL service might use NCIP to request items from a lending
 ILS and check them out to the borrowing ILS.
-</p>
 
 <p>
 In an NCIP transaction, the <i>initiator</i> sends a specially formatted
@@ -44,18 +52,16 @@ In an NCIP transaction, the <i>initiator</i> sends a specially formatted
 example, retrieving information about a patron or placing a hold on an item.
 The responder performs the task (if appropriate) and returns a <i>response</i>
 to the initiator.
-</p>
 
 <p>
 Both requests and responses are in an XML form and may consist of a complex
 &ldquo;tree&rdquo; of XML elements, most of which are optional.
-</p>
 
 <p>
 The following illustration shows the message pathways in a typical installation
 (the author&rsquo;s):
-</p>
 
+<p>
 <img src="ill/vncip-overview.png">
 
 <p>
@@ -63,70 +69,55 @@ Here, <b>Brahma</b> is a server running the SHAREit platform from Auto-Graphics
 and <b>Titania</b> is the server on which Voyager is running.  It should be
 possible to run <b>vncip</b> on a separate server, but that has not been
 tested.
-</p>
 
 <h2>Architecture</h2>
 
 <p>
-The <b>vncip</b> responder is a system of Perl scripts and modules whose task
-is to receive incoming NCIP version 1 requests, figure out what to do with each
-request, do it (or ask Voyager to do it), build an appropriate response, and
-send the response back to the initiator.
-</p>
+See <a href=arch.html>Architecture of vncip</a>
+
+<h2>Installation</h2>
 
 <p>
-Most of what <b>vncip</b> does is delegated to Voyager using SQL queries run
-against the Oracle database that stores Voyager&rsquo;s data or via the
-extended SIP2 interface that Voyager provides.  For example, checking out an
-item to a patron requires gathering information about the patron and the item
-using SQL, then using SIP to ask Voyager to check the item out.
-</p>
+Start by installing some basic prerequisites using yum.  Run this as root:
 
 <p>
-The code that makes up <b>vncip</b> is divided among several principal
-components:
-</p>
+<code>
+# yum install perl-Net-Server perl-Module-Build perl-YAML perl-XML-Simple perl-Package-Constants
+</code>
 
+<p>
+(To be completed later.)
+
+<h2>Files</h2>
+
+<p>
+All <b>vncip</b> files are located within <tt>/usr/local/vncip</tt> except for
+a few things that live in <tt>/var/local/vncip</tt>.
+
+<h3>/usr/local/vncip/</h3>
 <dl>
-<dt><b>ncipd</b></dt>
-<dd><p>
-    The NCIP1 <i>daemon</i> &ndash; this script runs continually and
-    &ldquo;drives&rdquo; all of the other components.
-</p></dd>
-<dt><b>ncipctl</b></dt>
-<dd><p>
-    A shell script to start and stop <b>ncipd</b>.
-</p></dd>
-<dt><b>Biblio::NCIP1::Responder</b></dt>
-<dd><p>
-    The main Perl module, which provides the &ldquo;responder&rdquo; proper.
-    The responder coordinates the other Perl modules.
-</p></dd>
-<dt><b>Biblio::NCIP1::Server</b></dt>
-<dd><p>
-    A Perl module that listens for incoming connections on the desired network
-    port, reads requests that come in, and passes them off to the
-    <b>Biblio::NCIP1::Responder</b> object.
-</p></dd>
-<dt><b>Biblio::NCIP1:Request</b></dt>
-<dd><p>
-    The Perl module that embodies an NCIP1 request.  It is responsible for
-    parsing the XML that comes in from the NCIP initiator.
-</p></dd>
-<dt><b>Biblio::NCIP1:Response</b></dt>
-<dd><p>
-    The Perl module that embodies an NCIP1 response.  It is responsible for
-    building the XML that will be sent back to the initiator.
-</p></dd>
-<dt><b>Biblio::NCIP1:Backend::Vger8</b></dt>
-<dd><p>
-    A Perl module holding all of the Voyager-specific code.
-</p></dd>
+<dt><b>bin/</b>
+<dd>Perl scripts
+<dt><b>lib/</b>
+<dd>Perl modules (these may be located elsewhere if desired)
+<dt><b>conf/</b>
+<dd>Config files
+<dt><b>var</b>
+<dd>A symlink to <tt>/var/local/vncip/</tt>
 </dl>
 
+<h3>/var/local/vncip/</h3>
+<dl>
+<dt><b>xxxdb/</b> <i>(i.e., the Voyager instance code)</i>
+<dd>Requests data &ndash; needed in order to cancel a request for an item
+<dt><b>log/</b>
+<dd>Log files
+</dl>
+
+<h2>Configuration</h2>
+
 <p>
-<b>vncip</b> begins by translating the XML request into a Perl data structure
-<ul>
+See <a href=config.html>Configuring vncip</a>.
 
 </body>
 </html>

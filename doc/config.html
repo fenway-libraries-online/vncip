@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Configuring vncip</title>
+<style>
+th, td {
+    text-align: left;
+    vertical-align: baseline;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+</style>
+</head>
+<body>
+
+<h1>Configuring vncip</h1>
+
+<p>
+Config files are located in <tt>/usr/local/vncip/conf</tt>.  Within this
+directory there must be a separate subdirectory for each <b>vncip</b> instance
+that you run.  (For example, you might have a production instance and a test
+instance.)
+
+<p>
+The following table summarizes the config files and their contents.
+
+<table>
+<tr>
+    <th>File
+    <th>Section
+    <th>Variable
+    <th>Description
+<tr>
+    <td>backend.conf
+    <td>sip
+    <td>port
+    <td>The port on which the Voyager SIP2 server is listening
+<tr>
+    <td>&nbsp;
+    <td>&nbsp;
+    <td>operator
+    <td>The Voyager operator (staff user) to use in connecting to the SIP2
+        server
+<tr>
+    <td>&nbsp;
+    <td>&nbsp;
+    <td>password
+    <td>The associated password
+<tr>
+    <td>&nbsp;
+    <td>&nbsp;
+    <td>location
+    <td>The location code (not location name or display name) at which SIP2
+        transactions are to occur
+<tr>
+    <td>&nbsp;
+    <td>voyager
+    <td>database
+    <td>The Oracle database SID (e.g., <tt>VGER</tt>)
+<tr>
+    <td>&nbsp;
+    <td>&nbsp;
+    <td>item_barcode_format
+    <td>The <b>printf</b>-style format string &ndash; which <i>must</i> contain
+        <tt>%s</tt> &ndash; to use in constructing a newly created barcode
+<tr>
+    <td>&nbsp;
+    <td>global
+    <td>locations_file
+    <td>The path (relative to this file) of a locations file (see below)
+<tr>
+    <td>server
+    <td>(none)
+    <td>port
+    <td>The port on which <b>vncip</b> should listen for incoming NCIP1 requests
+<tr>
+    <td><i>the locations file</i>
+    <td><i>each location</i>
+    <td>loan
+    <td>A Boolean value (<tt>Y</tt> or <tt>N</tt>) indicating whether requests
+        for items at the location should be honored &ndash; one section for
+        each location that needs to be treated specially
+</body>
+</html>
+
+
