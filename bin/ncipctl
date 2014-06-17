@@ -2,7 +2,7 @@
 
 typeset root=/usr/local/vncip
 typeset -a targets opts
-# Note: opts isn't used at this point
+# Note: opts isn't ever set at this point
 
 main() {
     cd $root
@@ -33,13 +33,13 @@ start() {
     shift $(( OPTIND - 1 ))
     if $debug; then
         print '\e[32;1m'"target $target started -- enter 'c' and then trigger a message"'\e[0m' >&2
-        ARGV0=ncipd NCIP_TARGET=$target /m1/shared/bin/perl -d bin/server $opts
+        ARGV0=ncipd NCIP_TARGET=$target /m1/shared/bin/perl -d bin/ncipd $opts
         return
     fi
     for target in $(_targets $@); do
         pid=$(_pidof $target)
         if (( pid == 0 )); then
-            ARGV0=ncipd NCIP_TARGET=$target bin/server $opts >> log/$target.log 2>&1 &
+            ARGV0=ncipd NCIP_TARGET=$target bin/ncipd $opts >> log/$target.log 2>&1 &
             sleep 0.5
             pid=$(_pidof $target)
             _note $target started \($pid\)
@@ -96,7 +96,6 @@ _pidof() {
     typeset port
     for port in $(_ports $target); do
         netstat -nlp 2> /dev/null | awk '/:'$port' / && match($NF, /[0-9]+/) { print substr($NF,RSTART,RLENGTH) }'
-        #netstat -nlp 2> /dev/null | perl -ne 'if (m{[\d*]:'$port' .+ (\d+)/ncipd$}) { print $1 }'
     done
 }
 

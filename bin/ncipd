@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 
-#use lib qw(/usr/local/vncip/lib);
-use lib 'lib';
+use FindBin qw($Bin);
+use lib "$Bin/../lib";
 
 use Biblio::NCIP1::Common;
 use Biblio::NCIP1::Responder;
@@ -17,7 +17,7 @@ $0 = 'ncipd';
 
 my %opt;
 getopts('tdT', \%opt);
-my $target = $opt{'t'} ? 'traindb' : $ENV{'NCIP_TARGET'} || 'flodb';
+my $target = $opt{'t'} ? 'traindb' : $ENV{'NCIP_TARGET'} || $ENV{'DATABASE'} || die "Can't determine the target Voyager database";
 $ENV{'NCIP_TARGET'} = $target;
 
 if ($opt{T}) {
@@ -28,7 +28,6 @@ my $backend = Biblio::NCIP1::Backend::Vger8->new(
     'config_file' => "conf/$target/backend.conf",
 );
 my $responder = Biblio::NCIP1::Responder->new(
-    # 'config_file' => "conf/$target/responder.conf",
     'backend' => $backend,
     'debug' => $opt{'d'} ? {'request' => 1} : {},
 );
@@ -39,3 +38,4 @@ $_->startup for $backend, $responder, $server;
 $server->responder($responder);
 $server->run;
 $_->teardown for $server, $responder, $backend;
+
