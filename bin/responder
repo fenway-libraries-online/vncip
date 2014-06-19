@@ -24,10 +24,9 @@ if ($opt{T}) {
     Biblio::NCIP1::Trace::trace(1);
 }
 my $backend = Biblio::NCIP1::Backend::Vger8->new(
-    'config_file' => "conf/$target/backend.conf",
+    'conf_file' => "conf/$target/backend.conf",
 );
 my $responder = Biblio::NCIP1::Responder->new(
-    # 'config_file' => "conf/$target/responder.conf",
     'backend' => $backend,
     'debug' => $opt{'d'} ? {'request' => 1} : {},
 );
