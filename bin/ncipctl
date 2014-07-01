@@ -103,7 +103,7 @@ _ports() {
     typeset target
     for target in $(_targets $@); do
         [[ -e conf/$target/server.conf ]] || continue
-        awk '/^port / { print $2 }' conf/$target/server.conf
+        awk '/^port / { print $3 }' conf/$target/server.conf
     done
 }
 
