@@ -1,0 +1,21 @@
+# This file is needed if you want to use *different* location limit groups for
+# different NCIP agencies.  At FLO, our NCIP responder receives NCIP messages
+# that are addressed to ten different agencies, one for each member of our
+# consortium.  If all of the NCIP messages that your NCIP responder receives are
+# addressed to the same agency, then this file is not needed (but must be
+# present) and you can simply define the default limit_group in backend.conf.
+
+# [AGENCY1]
+# limit_group = lgrp1
+
+# # If a RequestItem NCIP message is addressed to the agency "AGENCY2",
+# # we use the location limit group with the code "lgrp2" to determine
+# # what's lendable.
+# [AGENCY2]
+# limit_group = lgrp2
+
+# # If it's addressed to the agency "AGENCY3", we use the location limit
+# # group with code "lgrp2" instead.
+# [AGENCY3]
+# limit_group = lgrp2
+

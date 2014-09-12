@@ -3,15 +3,15 @@
 use strict;
 use warnings;
 
-use lib qw(/usr/local/vncip/lib);
-use lib 'lib';
+use FindBin qw($Bin);
+use lib "$Bin/../lib";
 
 use Biblio::NCIP1::Common;
 use Biblio::NCIP1::Responder;
 use Biblio::NCIP1::Backend::Vger8;
 use Getopt::Std;
 
-chdir '/usr/local/vncip';
+#chdir '/usr/local/vncip';
 
 my %cmd2method = qw(
     accept   AcceptItem

@@ -27,3 +27,6 @@ install/step
 install/build
 install/run-steps.zsh
 install/install.conf
+PKGINSTALL
+OVERVIEW
+lib

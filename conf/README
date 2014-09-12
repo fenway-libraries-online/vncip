@@ -1,0 +1,41 @@
+The NCIP connector runs "against" a particular "target".  You can have multiple
+targets, if you wish.  Each must have its own config settings in a directory
+whose name matches the Voyager instance name (xxxdb), and you must specify a
+unique port number for each.
+
+Within each NCIP target there must be four config files; here's what they're
+used for...
+
+backend.conf
+
+    This file contains Voyager-specific config settings.  When the NCIP
+    connector uses SIP to ask Voyager to do things (place a hold on an item,
+    etc.) it does so "as" a Voyager operator and "at" a circulation location,
+    so you'll to specify those here.
+    
+    When it creates a temporary item (when one of your patrons is borrowing an
+    item from elsewhere) it must tell Voyager what barcode to use for the item.
+    To make sure that this is unique, the NCIP connector uses the request ID
+    and a prefix and/or suffix.  The request ID will go where the "%" occurs in
+    this config setting.  Choose a prefix or suffix (or both) carefully!
+
+libraries.conf
+
+    The NCIP connector uses Voyager location limit groups to determine whether
+    a particular item is lendable -- if an item is not at a "lending" location,
+    attempts to request it will be rejected.  In this file you specify which
+    location limit group(s) to use.  You'll need one section for each library
+    within your institution -- technically one for each "agency" to which NCIP
+    messages are addressed.  You'll have to work with the folks who provide the
+    NCIP initiator to determine which agency code(s) to use.
+
+locations.conf
+
+    This file lets you disallow loans from particular locations.  It can
+    probably be left blank.
+
+server.conf
+
+    This file is where you specify the port at which the NCIP responder will
+    accept connections.  There are myriad other settings you can provide, too
+    -- see Net::Server(3pm) for more info if you're really, really curious.

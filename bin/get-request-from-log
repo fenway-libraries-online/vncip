@@ -7,12 +7,16 @@ use warnings;
 use Getopt::Std;
 
 my %opt;
-getopts('tr', \%opt);
+getopts('tl:r', \%opt);
 
 chdir '/var/local/vncip' or die;
 
 if ($opt{t}) {
     open STDIN, '<', 'log/traindb.log' or die;
+}
+elsif ($opt{l}) {
+    $opt{l} =~ s/(?:\.log)?$/.log/;
+    open STDIN, '<', "log/$opt{l}" or die;
 }
 else {
     open STDIN, '<', 'log/flodb.log' or die;

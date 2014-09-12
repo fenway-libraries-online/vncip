@@ -4,20 +4,27 @@ use strict;
 use warnings;
 
 use XML::Simple;
-
 use Getopt::Std;
 
 my $var = '/var/local/vncip';
 
 my %opt;
-getopts('t', \%opt);
+getopts('tl:', \%opt);
+
+chdir "$var/log" or die "Can't chdir $var/log: $!";
 
 if ($opt{t}) {
     open STDIN, '<', "$var/log/traindb.log" or die;
 }
-else {
-    open STDIN, '<', "$var/log/flodb.log" or die;
-}
+elsif ($opt{l}) {                                                                                                                                                        
+    $opt{l} =~ s/(?:\.log)?$/.log/;                                                                                                                                      
+    open STDIN, '<', $opt{l} or die;                                                                                                                                     
+}                                                                                                                                                                        
+else {                                                                                                                                                                   
+    my @logs = grep { !/^traindb\.log$/ } <*.log>;                                                                                                                       
+    die "Which log file?" if @logs != 1;                                                                                                                                 
+    open STDIN, '<', $logs[0] or die;                                                                                                                                    
+}                                                                                                                                                                        
 
 $/ = '';
 

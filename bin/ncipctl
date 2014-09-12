@@ -40,8 +40,9 @@ start() {
         pid=$(_pidof $target)
         if (( pid == 0 )); then
             ARGV0=ncipd NCIP_TARGET=$target bin/ncipd $opts >> log/$target.log 2>&1 &
-            sleep 0.5
-            pid=$(_pidof $target)
+            pid=$!
+            #sleep 0.5
+            #pid=$(_pidof $target)
             _note $target started \($pid\)
         else
             _note $target already running \($pid\)
