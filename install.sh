@@ -5,19 +5,19 @@ now() {
 }
 
 ok() {
-    echo '\r[32;1mOK [0m' "$*" >&2
+    echo '[32;1mOK [0m' "$*" >&2
 }
 
 more() {
-    echo '\r[32;1m...[0m' "$*" >&2
+    echo '[32;1m...[0m' "$*" >&2
 }
 
 fail() {
-    echo '\r[31;1mERR[0m' "Failed: $*" >&2
+    echo '[31;1mERR[0m' "Failed: $*" >&2
     exit 2
 }
 
-[ `id -u` -eq 0 ] || fail 'run as root'
+[ `id -u` -eq 0 ] || fail 'you must run the install script as root'
 ok 'The install script is running as root'
 
 now 'Make build directory'
