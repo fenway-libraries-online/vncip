@@ -1,28 +1,36 @@
 #!/bin/zsh
 
-typeset root=/usr/local/vncip
+main() {
+    typeset root=/usr/local/vncip
+    typeset target=${NCIP_TARGET:-$(default_target)} num=1 opt
+    typeset -a getargs perlargs respargs
 
-typeset db=flodb num=1 opt
-typeset -a getargs perlargs respargs
-
-while getopts :tdn: opt; do
-    case $opt in
-        (t) db=traindb
+    while getopts :tdn: opt; do
+        case $opt in
+        (t) target=traindb
             getargs+=( -t )
             respargs+=( -t ) ;;
         (d) perlargs+=( -d )
             respargs+=( -d ) ;;
         (n) num=$OPTARG ;;
-    esac
-done
-shift $(( OPTIND - 1 ))
+        esac
+    done
+    shift $(( OPTIND - 1 ))
 
-if (( $#argv == 1 )); then
-    num=$1
-    shift
-fi
+    if (( $#argv == 1 )); then
+        num=$1
+        shift
+    fi
 
-cd $root
+    cd $root
+    export NCIP_TARGET=$target
 
-# print EXEC bin/get-request-from-log $getargs $num \| /m1/shared/bin/perl $perlargs bin/responder $respargs >&2
-bin/get-request-from-log $getargs $num | /m1/shared/bin/perl $perlargs bin/responder $respargs
+    # print EXEC bin/get-request-from-log $getargs $num \| /m1/shared/bin/perl $perlargs bin/responder $respargs >&2
+    bin/get-request-from-log $getargs $num | /m1/shared/bin/perl $perlargs bin/responder $respargs
+}
+
+default_target() {
+    awk '/^target += +/ { print $3 }' $root/conf/master.conf
+}
+
+main "$@"

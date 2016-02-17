@@ -17,7 +17,7 @@ $0 = 'ncipd';
 
 my %opt;
 getopts('tdT', \%opt);
-my $target = $opt{'t'} ? 'traindb' : $ENV{'NCIP_TARGET'} || $ENV{'DATABASE'} || die "Can't determine the target Voyager database";
+my $target = $opt{'t'} ? 'traindb' : $ENV{'NCIP_TARGET'} || die "Can't determine the target Voyager database";
 $ENV{'NCIP_TARGET'} = $target;
 
 if ($opt{T}) {

@@ -25,6 +25,7 @@ my $backend = Biblio::NCIP1::Backend::Vger8->new(
     'conf_file' => "conf/$target/backend.conf",
 );
 my $responder = Biblio::NCIP1::Responder->new(
+    # 'conf_file' => "conf/$target/responder.conf",
     'backend' => $backend,
 );
 my ($xml, $err);

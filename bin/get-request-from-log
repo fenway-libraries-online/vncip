@@ -1,5 +1,4 @@
 #!/m1/shared/bin/perl
-#!/usr/bin/perl
 
 use strict;
 use warnings;
@@ -18,8 +17,12 @@ elsif ($opt{l}) {
     $opt{l} =~ s/(?:\.log)?$/.log/;
     open STDIN, '<', "log/$opt{l}" or die;
 }
+elsif ($ENV{'NCIP_TARGET'}) {
+    open STDIN, '<', "log/$ENV{'NCIP_TARGET'}.log" or die;
+}
 else {
-    open STDIN, '<', 'log/flodb.log' or die;
+    my ($log) = map { m{log/([^/]+db).log$} && $1 ne 'traindb' ? ("log/$1.log") : () } glob('log/*db.log');
+    open STDIN, '<', $log or die;
 }
 
 my $type = $opt{r} ? 'response' : 'request';
